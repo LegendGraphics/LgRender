@@ -4,97 +4,54 @@
 #include <cmath>
 #include "types.h"
 
-class Vector {
+class Triple {
 public:
-    // Vector Public Methods
-    Vector() { x = y = z = 0.f; }
-    Vector(float xx, float yy, float zz)
-        : x(xx), y(yy), z(zz) 
-    {
-        LG_ASSERT(!HasNaNs());
-    }
+    // Triple Public Methods
+    Triple();
+    Triple(float x, float y, float z);
+    Triple(const Triple &t);
 
-    bool HasNaNs() const { return isnan(x) || isnan(y) || isnan(z); }
-    explicit Vector(const Point &p);
+    float& x();
+    float& y();
+    float& z();
 
-#ifndef NDEBUG
-    // The default versions of these are fine for release builds; for debug
-    // we define them so that we can add the assert checks.
-    Vector(const Vector &v) {
-        LG_ASSERT(!v.HasNaNs());
-        x = v.x; y = v.y; z = v.z;
-    }
+    const float& x() const;
+    const float& y() const;
+    const float& z() const;
 
-    Vector &operator=(const Vector &v) {
-        LG_ASSERT(!v.HasNaNs());
-        x = v.x; y = v.y; z = v.z;
-        return *this;
-    }
-#endif // !NDEBUG
+    bool hasNaNs() const;
+    //explicit Triple(const Point &p);
 
-    Vector operator+(const Vector &v) const {
-        LG_ASSERT(!v.HasNaNs());
-        return Vector(x + v.x, y + v.y, z + v.z);
-    }
+    Triple operator+(const Triple &t) const;   
+    Triple operator-(const Triple &t) const;   
+    Triple operator*(float f) const;   
+    Triple operator/(float f) const;
+    
+    void operator+=(const Triple &t);
+    void operator-=(const Triple &t);
+    void operator*=(float f);
+    void operator/=(float f);
 
-    Vector& operator+=(const Vector &v) {
-        LG_ASSERT(!v.HasNaNs());
-        x += v.x; y += v.y; z += v.z;
-        return *this;
-    }
-    Vector operator-(const Vector &v) const {
-        LG_ASSERT(!v.HasNaNs());
-        return Vector(x - v.x, y - v.y, z - v.z);
-    }
+    Triple operator-() const;
 
-    Vector& operator-=(const Vector &v) {
-        LG_ASSERT(!v.HasNaNs());
-        x -= v.x; y -= v.y; z -= v.z;
-        return *this;
-    }
-    Vector operator*(float f) const { return Vector(f*x, f*y, f*z); }
+    void operator=(const Triple &t);
+    bool operator==(const Triple &t) const;
+    bool operator!=(const Triple &t) const;
 
-    Vector &operator*=(float f) {
-        LG_ASSERT(!isnan(f));
-        x *= f; y *= f; z *= f;
-        return *this;
-    }
-    Vector operator/(float f) const {
-        LG_ASSERT(f != 0);
-        float inv = 1.f / f;
-        return Vector(x * inv, y * inv, z * inv);
-    }
+    float operator[](int i) const;
+    float &operator[](int i);
 
-    Vector &operator/=(float f) {
-        LG_ASSERT(f != 0);
-        float inv = 1.f / f;
-        x *= inv; y *= inv; z *= inv;
-        return *this;
-    }
-    Vector operator-() const { return Vector(-x, -y, -z); }
-    float operator[](int i) const {
-        LG_ASSERT(i >= 0 && i <= 2);
-        return (&x)[i];
-    }
+    float length_squared() const;
+    float length() const;
+    //explicit Triple(const Normal &n);
 
-    float &operator[](int i) {
-        LG_ASSERT(i >= 0 && i <= 2);
-        return (&x)[i];
-    }
-    float LengthSquared() const { return x*x + y*y + z*z; }
-    float Length() const { return sqrtf(LengthSquared()); }
-    explicit Vector(const Normal &n);
-
-    bool operator==(const Vector &v) const {
-        return x == v.x && y == v.y && z == v.z;
-    }
-    bool operator!=(const Vector &v) const {
-        return x != v.x || y != v.y || z != v.z;
-    }
-
-    // Vector Public Data
-    float x, y, z;
+private:
+    // Triple Public Data
+    float _x, _y, _z;
 };
+
+
+
 
 
 class Point {
@@ -117,27 +74,27 @@ public:
         return *this;
     }
 #endif // !NDEBUG
-    Point operator+(const Vector &v) const {
+    Point operator+(const Triple &v) const {
         LG_ASSERT(!v.HasNaNs());
         return Point(x + v.x, y + v.y, z + v.z);
     }
 
-    Point &operator+=(const Vector &v) {
+    Point &operator+=(const Triple &v) {
         LG_ASSERT(!v.HasNaNs());
         x += v.x; y += v.y; z += v.z;
         return *this;
     }
-    Vector operator-(const Point &p) const {
+    Triple operator-(const Point &p) const {
         LG_ASSERT(!p.HasNaNs());
-        return Vector(x - p.x, y - p.y, z - p.z);
+        return Triple(x - p.x, y - p.y, z - p.z);
     }
 
-    Point operator-(const Vector &v) const {
+    Point operator-(const Triple &v) const {
         LG_ASSERT(!v.HasNaNs());
         return Point(x - v.x, y - v.y, z - v.z);
     }
 
-    Point &operator-=(const Vector &v) {
+    Point &operator-=(const Triple &v) {
         LG_ASSERT(!v.HasNaNs());
         x -= v.x; y -= v.y; z -= v.z;
         return *this;
@@ -261,7 +218,7 @@ public:
         return *this;
     }
 #endif // !NDEBUG
-    explicit Normal(const Vector &v)
+    explicit Normal(const Triple &v)
         : x(v.x), y(v.y), z(v.z) {
         LG_ASSERT(!v.HasNaNs());
     }
@@ -291,10 +248,10 @@ class Ray {
 public:
     // Ray Public Methods
     Ray() : mint(0.f), maxt(INFINITY), time(0.f), depth(0) { }
-    Ray(const Point &origin, const Vector &direction,
+    Ray(const Point &origin, const Triple &direction,
         float start, float end = INFINITY, float t = 0.f, int d = 0)
         : o(origin), d(direction), mint(start), maxt(end), time(t), depth(d) { }
-    Ray(const Point &origin, const Vector &direction, const Ray &parent,
+    Ray(const Point &origin, const Triple &direction, const Ray &parent,
         float start, float end = INFINITY)
         : o(origin), d(direction), mint(start), maxt(end),
         time(parent.time), depth(parent.depth + 1) { }
@@ -306,7 +263,7 @@ public:
 
     // Ray Public Data
     Point o;
-    Vector d;
+    Triple d;
     mutable float mint, maxt;
     float time;
     int depth;
@@ -317,12 +274,12 @@ class RayDifferential : public Ray {
 public:
     // RayDifferential Public Methods
     RayDifferential() { hasDifferentials = false; }
-    RayDifferential(const Point &org, const Vector &dir, float start,
+    RayDifferential(const Point &org, const Triple &dir, float start,
         float end = INFINITY, float t = 0.f, int d = 0)
         : Ray(org, dir, start, end, t, d) {
         hasDifferentials = false;
     }
-    RayDifferential(const Point &org, const Vector &dir, const Ray &parent,
+    RayDifferential(const Point &org, const Triple &dir, const Ray &parent,
         float start, float end = INFINITY)
         : Ray(org, dir, start, end, parent.time, parent.depth + 1) {
         hasDifferentials = false;
@@ -345,7 +302,7 @@ public:
     // RayDifferential Public Data
     bool hasDifferentials;
     Point rxOrigin, ryOrigin;
-    Vector rxDirection, ryDirection;
+    Triple rxDirection, ryDirection;
 };
 
 
@@ -375,19 +332,19 @@ public:
             pt.z >= pMin.z && pt.z <= pMax.z);
     }
     void Expand(float delta) {
-        pMin -= Vector(delta, delta, delta);
-        pMax += Vector(delta, delta, delta);
+        pMin -= Triple(delta, delta, delta);
+        pMax += Triple(delta, delta, delta);
     }
     float SurfaceArea() const {
-        Vector d = pMax - pMin;
+        Triple d = pMax - pMin;
         return 2.f * (d.x * d.y + d.x * d.z + d.y * d.z);
     }
     float Volume() const {
-        Vector d = pMax - pMin;
+        Triple d = pMax - pMin;
         return d.x * d.y * d.z;
     }
     int MaximumExtent() const {
-        Vector diag = pMax - pMin;
+        Triple diag = pMax - pMin;
         if (diag.x > diag.y && diag.x > diag.z)
             return 0;
         else if (diag.y > diag.z)
@@ -401,8 +358,8 @@ public:
         return Point(::Lerp(tx, pMin.x, pMax.x), ::Lerp(ty, pMin.y, pMax.y),
             ::Lerp(tz, pMin.z, pMax.z));
     }
-    Vector Offset(const Point &p) const {
-        return Vector((p.x - pMin.x) / (pMax.x - pMin.x),
+    Triple Offset(const Point &p) const {
+        return Triple((p.x - pMin.x) / (pMax.x - pMin.x),
             (p.y - pMin.y) / (pMax.y - pMin.y),
             (p.z - pMin.z) / (pMax.z - pMin.z));
     }
@@ -423,64 +380,64 @@ public:
 
 
 // Geometry Inline Functions
-inline Vector::Vector(const Point &p)
+inline Triple::Triple(const Point &p)
     : x(p.x), y(p.y), z(p.z) {
     LG_ASSERT(!HasNaNs());
 }
 
 
-inline Vector operator*(float f, const Vector &v) { return v*f; }
-inline float Dot(const Vector &v1, const Vector &v2) {
+inline Triple operator*(float f, const Triple &v) { return v*f; }
+inline float Dot(const Triple &v1, const Triple &v2) {
     LG_ASSERT(!v1.HasNaNs() && !v2.HasNaNs());
     return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
 }
 
 
-inline float AbsDot(const Vector &v1, const Vector &v2) {
+inline float AbsDot(const Triple &v1, const Triple &v2) {
     LG_ASSERT(!v1.HasNaNs() && !v2.HasNaNs());
     return fabsf(Dot(v1, v2));
 }
 
 
-inline Vector Cross(const Vector &v1, const Vector &v2) {
+inline Triple Cross(const Triple &v1, const Triple &v2) {
     LG_ASSERT(!v1.HasNaNs() && !v2.HasNaNs());
     double v1x = v1.x, v1y = v1.y, v1z = v1.z;
     double v2x = v2.x, v2y = v2.y, v2z = v2.z;
-    return Vector((v1y * v2z) - (v1z * v2y),
+    return Triple((v1y * v2z) - (v1z * v2y),
         (v1z * v2x) - (v1x * v2z),
         (v1x * v2y) - (v1y * v2x));
 }
 
 
-inline Vector Cross(const Vector &v1, const Normal &v2) {
+inline Triple Cross(const Triple &v1, const Normal &v2) {
     LG_ASSERT(!v1.HasNaNs() && !v2.HasNaNs());
     double v1x = v1.x, v1y = v1.y, v1z = v1.z;
     double v2x = v2.x, v2y = v2.y, v2z = v2.z;
-    return Vector((v1y * v2z) - (v1z * v2y),
+    return Triple((v1y * v2z) - (v1z * v2y),
         (v1z * v2x) - (v1x * v2z),
         (v1x * v2y) - (v1y * v2x));
 }
 
 
-inline Vector Cross(const Normal &v1, const Vector &v2) {
+inline Triple Cross(const Normal &v1, const Triple &v2) {
     LG_ASSERT(!v1.HasNaNs() && !v2.HasNaNs());
     double v1x = v1.x, v1y = v1.y, v1z = v1.z;
     double v2x = v2.x, v2y = v2.y, v2z = v2.z;
-    return Vector((v1y * v2z) - (v1z * v2y),
+    return Triple((v1y * v2z) - (v1z * v2y),
         (v1z * v2x) - (v1x * v2z),
         (v1x * v2y) - (v1y * v2x));
 }
 
 
-inline Vector Normalize(const Vector &v) { return v / v.Length(); }
-inline void CoordinateSystem(const Vector &v1, Vector *v2, Vector *v3) {
+inline Triple Normalize(const Triple &v) { return v / v.Length(); }
+inline void CoordinateSystem(const Triple &v1, Triple *v2, Triple *v3) {
     if (fabsf(v1.x) > fabsf(v1.y)) {
         float invLen = 1.f / sqrtf(v1.x*v1.x + v1.z*v1.z);
-        *v2 = Vector(-v1.z * invLen, 0.f, v1.x * invLen);
+        *v2 = Triple(-v1.z * invLen, 0.f, v1.x * invLen);
     }
     else {
         float invLen = 1.f / sqrtf(v1.y*v1.y + v1.z*v1.z);
-        *v2 = Vector(0.f, v1.z * invLen, -v1.y * invLen);
+        *v2 = Triple(0.f, v1.z * invLen, -v1.y * invLen);
     }
     *v3 = Cross(v1, *v2);
 }
@@ -512,19 +469,19 @@ inline Normal Normalize(const Normal &n) {
 }
 
 
-inline Vector::Vector(const Normal &n)
+inline Triple::Triple(const Normal &n)
     : x(n.x), y(n.y), z(n.z) {
     LG_ASSERT(!n.HasNaNs());
 }
 
 
-inline float Dot(const Normal &n1, const Vector &v2) {
+inline float Dot(const Normal &n1, const Triple &v2) {
     LG_ASSERT(!n1.HasNaNs() && !v2.HasNaNs());
     return n1.x * v2.x + n1.y * v2.y + n1.z * v2.z;
 }
 
 
-inline float Dot(const Vector &v1, const Normal &n2) {
+inline float Dot(const Triple &v1, const Normal &n2) {
     LG_ASSERT(!v1.HasNaNs() && !n2.HasNaNs());
     return v1.x * n2.x + v1.y * n2.y + v1.z * n2.z;
 }
@@ -536,13 +493,13 @@ inline float Dot(const Normal &n1, const Normal &n2) {
 }
 
 
-inline float AbsDot(const Normal &n1, const Vector &v2) {
+inline float AbsDot(const Normal &n1, const Triple &v2) {
     LG_ASSERT(!n1.HasNaNs() && !v2.HasNaNs());
     return fabsf(n1.x * v2.x + n1.y * v2.y + n1.z * v2.z);
 }
 
 
-inline float AbsDot(const Vector &v1, const Normal &n2) {
+inline float AbsDot(const Triple &v1, const Normal &n2) {
     LG_ASSERT(!v1.HasNaNs() && !n2.HasNaNs());
     return fabsf(v1.x * n2.x + v1.y * n2.y + v1.z * n2.z);
 }
@@ -554,7 +511,7 @@ inline float AbsDot(const Normal &n1, const Normal &n2) {
 }
 
 
-inline Normal Faceforward(const Normal &n, const Vector &v) {
+inline Normal Faceforward(const Normal &n, const Triple &v) {
     return (Dot(n, v) < 0.f) ? -n : n;
 }
 
@@ -565,13 +522,13 @@ inline Normal Faceforward(const Normal &n, const Normal &n2) {
 
 
 
-inline Vector Faceforward(const Vector &v, const Vector &v2) {
+inline Triple Faceforward(const Triple &v, const Triple &v2) {
     return (Dot(v, v2) < 0.f) ? -v : v;
 }
 
 
 
-inline Vector Faceforward(const Vector &v, const Normal &n2) {
+inline Triple Faceforward(const Triple &v, const Normal &n2) {
     return (Dot(v, n2) < 0.f) ? -v : v;
 }
 
@@ -589,28 +546,28 @@ inline Point &BBox::operator[](int i) {
 }
 
 
-inline Vector SphericalDirection(float sintheta,
+inline Triple SphericalDirection(float sintheta,
     float costheta, float phi) {
-    return Vector(sintheta * cosf(phi),
+    return Triple(sintheta * cosf(phi),
         sintheta * sinf(phi),
         costheta);
 }
 
 
-inline Vector SphericalDirection(float sintheta, float costheta,
-    float phi, const Vector &x,
-    const Vector &y, const Vector &z) {
+inline Triple SphericalDirection(float sintheta, float costheta,
+    float phi, const Triple &x,
+    const Triple &y, const Triple &z) {
     return sintheta * cosf(phi) * x +
         sintheta * sinf(phi) * y + costheta * z;
 }
 
 
-inline float SphericalTheta(const Vector &v) {
+inline float SphericalTheta(const Triple &v) {
     return acosf(Clamp(v.z, -1.f, 1.f));
 }
 
 
-inline float SphericalPhi(const Vector &v) {
+inline float SphericalPhi(const Triple &v) {
     float p = atan2f(v.y, v.x);
     return (p < 0.f) ? p + 2.f*M_PI : p;
 }

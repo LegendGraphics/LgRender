@@ -16,7 +16,7 @@
 static void processError(const char *format, va_list args,
     const char *errorType, int disposition) {
     // Report error
-    if (disposition == LGRENDER_ERROR_IGNORE)
+	if (disposition == LGRENDER_ERROR_IGNORE)
         return;
 
     std::string errorString(errorType);
