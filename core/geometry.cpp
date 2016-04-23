@@ -176,6 +176,27 @@ bool Ray::hasNaNs() const
 }
 
 
+Point& Ray::o()
+{
+    return _o;
+}
+
+Vector& Ray::d()
+{
+    return _d;
+}
+
+const Point& Ray::o() const
+{
+    return _o;
+}
+
+const Vector& Ray::d() const
+{
+    return _d;
+}
+
+
 BoundingBox::BoundingBox()
 {
     _pmax = Point(INFINITY, INFINITY, INFINITY);

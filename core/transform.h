@@ -2,33 +2,39 @@
 #define LGRENDER_CORE_TRANSFORM_H
 
 #include "matrix.h"
+#include "geometry.h"
 
 class Transform
 {
 public:
-    Transform(){}
+    Transform();
     Transform(const Matrix4x4 &mat);
+    Transform(const Matrix4x4 &mat, const Matrix4x4 &mat_inv);
 
     bool operator==(const Transform& t) const;
     bool operator!=(const Transform& t) const;
     /*Matrix operator*(const Transform& t) const;
     void operator*=(const Matrix<OtherR, OtherC>& mat);*/
 
+    Transform operator*(const Transform &t) const;
+
+    inline Point operator()(const Point& p) const;
+    inline Vector operator()(const Vector& v) const;
+    inline Normal operator()(const Normal& n) const;
+    inline Ray operator()(const Ray& r) const;
+
     Transform inverse() const;
     Transform transpose() const;
-
-    inline Point operator()(const Point &pt) const;
-    inline void operator()(const Point &pt, Point *ptrans) const;
-    inline Vector operator()(const Vector &v) const;
-    inline void operator()(const Vector &v, Vector *vt) const;
-    inline Normal operator()(const Normal &) const;
-    inline void operator()(const Normal &, Normal *nt) const;
-    inline Ray operator()(const Ray &r) const;
-    inline void operator()(const Ray &r, Ray *rt) const;
-    inline RayDifferential operator()(const RayDifferential &r) const;
-    inline void operator()(const RayDifferential &r, RayDifferential *rt) const;
-    BBox operator()(const BBox &b) const;
-    Transform operator*(const Transform &t2) const;
+    Transform translate(const Vector &delta) const;
+    Transform scale(float x, float y, float z) const;
+    Transform rotateX(float angle) const;
+    Transform rotateY(float angle) const;
+    Transform rotateZ(float angle) const;
+    Transform rotate(float angle, const Vector &axis) const;
+    Transform lookAt(const Point &pos, const Point &look, const Vector &up) const;
+    Transform orthographic(float znear, float zfar) const;
+    Transform perspective(float fov, float znear, float zfar) const;
+    
 
 private:
     Matrix4x4 m_, m_inv_;

@@ -67,7 +67,11 @@ public:
     bool hasNaNs() const;
 
     // other operations
+    Point& o();
+    Vector& d();
 
+    const Point& o() const;
+    const Vector& d() const;
 private:
     Point   _o;
     Vector  _d;

@@ -10,6 +10,18 @@ Matrix<R, C>::Matrix()
 }
 
 template <int R, int C>
+Matrix<R, C>::Matrix(float m00, float m01, float m02, float m03,
+    float m10, float m11, float m12, float m13,
+    float m20, float m21, float m22, float m23,
+    float m30, float m31, float m32, float m33)
+{
+    m[0][0] = m00; m[0][1] = m01; m[0][2] = m02; m[0][3] = m03;
+    m[1][0] = m10; m[1][1] = m11; m[1][2] = m12; m[1][3] = m13;
+    m[2][0] = m20; m[2][1] = m21; m[2][2] = m22; m[2][3] = m23;
+    m[3][0] = m30; m[3][1] = m31; m[3][2] = m32; m[3][3] = m33;
+}
+
+template <int R, int C>
 Matrix<R, C>::Matrix(const float m[R][C])
 {
     LG_ASSERT((R > 0 && C > 0));
@@ -104,10 +116,31 @@ void Matrix<R, C>::operator*=(const Matrix<OtherR, OtherC>& mat)
 }
 
 template <int R, int C>
-float& Matrix<R, C>::operator()(int i, int j) const
+float& Matrix<R, C>::operator()(int i, int j)
 {
     LG_ASSERT((i >= 0 && i < R) && (j >= 0 && j < C));
     return _m[i][j];
+}
+
+template <int R, int C>
+float* const Matrix<R, C>::operator[](int k)
+{
+    LG_ASSERT( k < R );
+    return &_m[k];
+}
+
+template <int R, int C>
+const float& Matrix<R, C>::operator()(int i, int j) const
+{
+    LG_ASSERT((i >= 0 && i < R) && (j >= 0 && j < C));
+    return _m[i][j];
+}
+
+template <int R, int C>
+const float* const Matrix<R, C>::operator[](int k) const
+{
+    LG_ASSERT(k < R);
+    return &_m[k];
 }
 
 template <int R, int C>
