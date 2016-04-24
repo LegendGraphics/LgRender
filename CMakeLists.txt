@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8)
 
 project( LgRender )
 
-FILE( GLOB Project_SRCS "core/*.*" )		
+FILE( GLOB Project_SRCS "core/*.*" "shapes/*.*")		
 SET( Project_INCLUDE_DIR core/)
 
 INCLUDE_DIRECTORIES( ${Project_INCLUDE_DIR} 
