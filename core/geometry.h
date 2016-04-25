@@ -58,21 +58,13 @@ typedef Triple Point;
 typedef Triple Normal;
 
 
-class Ray
+struct Ray
 {
-public:
     Ray();
     // other constructors
     Point operator()(float t) const;
     bool hasNaNs() const;
 
-    // other operations
-    Point& o();
-    Vector& d();
-
-    const Point& o() const;
-    const Vector& d() const;
-private:
     Point   _o;
     Vector  _d;
     float   _tmin, _tmax;
