@@ -2,90 +2,90 @@
 #include "trianglemesh.h"
 
 
-// TriangleMesh Method Definitions
-TriangleMesh::TriangleMesh(const Transform *o2w, const Transform *w2o,
-    bool ro, int nt, int nv, const int *vi, const Point *P,
-    const Normal *N, const Vector *S, const float *uv,
-    const Reference<Texture<float> > &atex)
-    : Shape(o2w, w2o, ro), alphaTexture(atex) {
-    ntris = nt;
-    nverts = nv;
-    vertexIndex = new int[3 * ntris];
-    memcpy(vertexIndex, vi, 3 * ntris * sizeof(int));
-    // Copy _uv_, _N_, and _S_ vertex data, if present
-    if (uv) {
-        uvs = new float[2 * nverts];
-        memcpy(uvs, uv, 2 * nverts*sizeof(float));
-    }
-    else uvs = NULL;
-    p = new Point[nverts];
-    if (N) {
-        n = new Normal[nverts];
-        memcpy(n, N, nverts*sizeof(Normal));
-    }
-    else n = NULL;
-    if (S) {
-        s = new Vector[nverts];
-        memcpy(s, S, nverts*sizeof(Vector));
-    }
-    else s = NULL;
-
-    // Transform mesh vertices to world space
-    for (int i = 0; i < nverts; ++i)
-        p[i] = (*ObjectToWorld)(P[i]);
-}
-
-
-TriangleMesh::~TriangleMesh() {
-    delete[] vertexIndex;
-    delete[] p;
-    delete[] s;
-    delete[] n;
-    delete[] uvs;
-}
-
-
-BBox TriangleMesh::ObjectBound() const {
-    BBox objectBounds;
-    for (int i = 0; i < nverts; i++)
-        objectBounds = Union(objectBounds, (*WorldToObject)(p[i]));
-    return objectBounds;
-}
-
-
-BBox TriangleMesh::WorldBound() const {
-    BBox worldBounds;
-    for (int i = 0; i < nverts; i++)
-        worldBounds = Union(worldBounds, p[i]);
-    return worldBounds;
-}
-
-
-void TriangleMesh::Refine(vector<Reference<Shape> > &refined) const {
-    for (int i = 0; i < ntris; ++i)
-        refined.push_back(new Triangle(ObjectToWorld,
-            WorldToObject, ReverseOrientation,
-            (TriangleMesh *)this, i));
-}
-
-
-BBox Triangle::ObjectBound() const {
-    // Get triangle vertices in _p1_, _p2_, and _p3_
-    const Point &p1 = mesh->p[v[0]];
-    const Point &p2 = mesh->p[v[1]];
-    const Point &p3 = mesh->p[v[2]];
-    return Union(BBox((*WorldToObject)(p1), (*WorldToObject)(p2)),
-        (*WorldToObject)(p3));
-}
+//// TriangleMesh Method Definitions
+//TriangleMesh::TriangleMesh(const Transform *o2w, const Transform *w2o,
+//    bool ro, int nt, int nv, const int *vi, const Point *P,
+//    const Normal *N, const Vector *S, const float *uv,
+//    const Reference<Texture<float> > &atex)
+//    : Shape(o2w, w2o, ro), alphaTexture(atex) {
+//    ntris = nt;
+//    nverts = nv;
+//    vertexIndex = new int[3 * ntris];
+//    memcpy(vertexIndex, vi, 3 * ntris * sizeof(int));
+//    // Copy _uv_, _N_, and _S_ vertex data, if present
+//    if (uv) {
+//        uvs = new float[2 * nverts];
+//        memcpy(uvs, uv, 2 * nverts*sizeof(float));
+//    }
+//    else uvs = NULL;
+//    p = new Point[nverts];
+//    if (N) {
+//        n = new Normal[nverts];
+//        memcpy(n, N, nverts*sizeof(Normal));
+//    }
+//    else n = NULL;
+//    if (S) {
+//        s = new Vector[nverts];
+//        memcpy(s, S, nverts*sizeof(Vector));
+//    }
+//    else s = NULL;
+//
+//    // Transform mesh vertices to world space
+//    for (int i = 0; i < nverts; ++i)
+//        p[i] = (*ObjectToWorld)(P[i]);
+//}
+//
+//
+//TriangleMesh::~TriangleMesh() {
+//    delete[] vertexIndex;
+//    delete[] p;
+//    delete[] s;
+//    delete[] n;
+//    delete[] uvs;
+//}
+//
+//
+//BBox TriangleMesh::ObjectBound() const {
+//    BBox objectBounds;
+//    for (int i = 0; i < nverts; i++)
+//        objectBounds = Union(objectBounds, (*WorldToObject)(p[i]));
+//    return objectBounds;
+//}
+//
+//
+//BBox TriangleMesh::WorldBound() const {
+//    BBox worldBounds;
+//    for (int i = 0; i < nverts; i++)
+//        worldBounds = Union(worldBounds, p[i]);
+//    return worldBounds;
+//}
+//
+//
+//void TriangleMesh::Refine(vector<Reference<Shape> > &refined) const {
+//    for (int i = 0; i < ntris; ++i)
+//        refined.push_back(new Triangle(ObjectToWorld,
+//            WorldToObject, ReverseOrientation,
+//            (TriangleMesh *)this, i));
+//}
 
 
-BBox Triangle::WorldBound() const {
-    // Get triangle vertices in _p1_, _p2_, and _p3_
-    const Point &p1 = mesh->p[v[0]];
-    const Point &p2 = mesh->p[v[1]];
-    const Point &p3 = mesh->p[v[2]];
-    return Union(BBox(p1, p2), p3);
-}
+//BBox Triangle::ObjectBound() const {
+//    // Get triangle vertices in _p1_, _p2_, and _p3_
+//    const Point &p1 = mesh->p[v[0]];
+//    const Point &p2 = mesh->p[v[1]];
+//    const Point &p3 = mesh->p[v[2]];
+//    return Union(BBox((*WorldToObject)(p1), (*WorldToObject)(p2)),
+//        (*WorldToObject)(p3));
+//}
+//
+//
+//BBox Triangle::WorldBound() const {
+//    // Get triangle vertices in _p1_, _p2_, and _p3_
+//    const Point &p1 = mesh->p[v[0]];
+//    const Point &p2 = mesh->p[v[1]];
+//    const Point &p3 = mesh->p[v[2]];
+//    return Union(BBox(p1, p2), p3);
+//}
 
 
 bool Triangle::Intersect(const Ray &ray, float *tHit, float *rayEpsilon,
