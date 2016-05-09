@@ -39,12 +39,8 @@ class Triangle : public Shape
 {
 public:
     Triangle(const Transform *o2w, const Transform *w2o, bool ro,
-        TriangleMesh *m, int n)
-        : Shape(o2w, w2o, ro) {
-        mesh = m;
-        v = &mesh->vertexIndex[3 * n];
-     //   PBRT_CREATED_TRIANGLE(this);
-    }
+        TriangleMesh *mesh, int n);
+
     BoundingBox object_bound() const;
     BoundingBox world_bound() const;
     bool intersect(const Ray &ray, float *t_hit, float *ray_epsilon,
@@ -52,7 +48,7 @@ public:
     bool intersectP(const Ray &ray) const;
     float area() const;
 
-    void getUVs(float uv[3][2]) const {
+    /*void getUVs(float uv[3][2]) const {
         if (mesh->uvs) {
             uv[0][0] = mesh->uvs[2 * v[0]];
             uv[0][1] = mesh->uvs[2 * v[0] + 1];
@@ -66,7 +62,7 @@ public:
             uv[1][0] = 1.; uv[1][1] = 0.;
             uv[2][0] = 1.; uv[2][1] = 1.;
         }
-    }
+    }*/
     
     /*virtual void GetShadingGeometry(const Transform &obj2world,
         const DifferentialGeometry &dg,
@@ -74,8 +70,8 @@ public:
     Point Sample(float u1, float u2, Normal *Ns) const;*/
 private:
     // Triangle Private Data
-    Reference<TriangleMesh> mesh;
-    int *v;
+    Reference<TriangleMesh> mesh_;
+    int *v_;
 };
 
 
