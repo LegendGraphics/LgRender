@@ -1,6 +1,8 @@
 #ifndef LGRENDER_MATH_UTILS_H
 #define LGRENDER_MATH_UTILS_H
 
+#define     LG_PI       3.1415926
+
 #include <cmath>
 
 // Global Inline Functions
@@ -37,13 +39,13 @@ inline int mod(int a, int b)
 
 inline float radians(float degree) 
 {
-    return ((float)M_PI / 180.f) * degree;
+    return ((float)LG_PI / 180.f) * degree;
 }
 
 
 inline float degrees(float rad) 
 {
-    return (180.f / (float)M_PI) * rad;
+    return (180.f / (float)LG_PI) * rad;
 }
 
 

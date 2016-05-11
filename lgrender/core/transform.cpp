@@ -1,8 +1,8 @@
 #include "transform.h"
 
 Transform::Transform()
-    :m_(),
-    m_inv_() // Identity
+    :m_(Matrix4x4::identity()),
+    m_inv_(Matrix4x4::identity())
 {}
 
 Transform::Transform(const Matrix4x4 &mat)
@@ -75,8 +75,8 @@ inline Normal Transform::operator()(const Normal &n) const
 inline Ray Transform::operator()(const Ray &r) const 
 {
     Ray ret = r;
-    ret.o() = (*this)(r.o());
-    ret.d() = (*this)(r.d());
+    ret._o= (*this)(r._o);
+    ret._d = (*this)(r._d);
  
     return ret;
 }
@@ -109,8 +109,8 @@ Transform Transform::scale(float x, float y, float z) const
 
 Transform Transform::rotateX(float angle) const
 {
-    float sin_t = sinf(Radians(angle));
-    float cos_t = cosf(Radians(angle));
+    float sin_t = sinf(radians(angle));
+    float cos_t = cosf(radians(angle));
     Matrix4x4 m(1, 0, 0, 0,
         0, cos_t, -sin_t, 0,
         0, sin_t, cos_t, 0,
@@ -120,8 +120,8 @@ Transform Transform::rotateX(float angle) const
 
 Transform Transform::rotateY(float angle) const
 {
-    float sin_t = sinf(Radians(angle));
-    float cos_t = cosf(Radians(angle));
+    float sin_t = sinf(radians(angle));
+    float cos_t = cosf(radians(angle));
     Matrix4x4 m(cos_t, 0, sin_t, 0,
         0, 1, 0, 0,
         -sin_t, 0, cos_t, 0,
@@ -131,8 +131,8 @@ Transform Transform::rotateY(float angle) const
 
 Transform Transform::rotateZ(float angle) const
 {
-    float sin_t = sinf(Radians(angle));
-    float cos_t = cosf(Radians(angle));
+    float sin_t = sinf(radians(angle));
+    float cos_t = cosf(radians(angle));
     Matrix4x4 m(cos_t, -sin_t, 0, 0,
         sin_t, cos_t, 0, 0,
         0, 0, 1, 0,
@@ -143,8 +143,8 @@ Transform Transform::rotateZ(float angle) const
 Transform Transform::rotate(float angle, const Vector &axis) const
 {
     Vector a = axis.normalize();
-    float s = sinf(Radians(angle));
-    float c = cosf(Radians(angle));
+    float s = sinf(radians(angle));
+    float c = cosf(radians(angle));
     float m[4][4];
 
     m[0][0] = a.x * a.x + (1.f - a.x * a.x) * c;
@@ -171,59 +171,59 @@ Transform Transform::rotate(float angle, const Vector &axis) const
     return Transform(mat, mat.transpose());
 }
 
-//Transform Transform::lookAt(const Point &pos, const Point &look, const Vector &up) const
-//{
-//    float m[4][4];
-//    // Initialize fourth column of viewing matrix
-//    m[0][3] = pos.x;
-//    m[1][3] = pos.y;
-//    m[2][3] = pos.z;
-//    m[3][3] = 1;
-//
-//    // Initialize first three columns of viewing matrix
-//    Vector dir = (look - pos).normalize();
-//    /*if (Cross(Normalize(up), dir).Length() == 0) {
-//        Error("\"up\" vector (%f, %f, %f) and viewing direction (%f, %f, %f) "
-//            "passed to LookAt are pointing in the same direction.  Using "
-//            "the identity transformation.", up.x, up.y, up.z, dir.x, dir.y,
-//            dir.z);
-//        return Transform();
-//    }*/
-//    Vector left = Normalize(Cross(Normalize(up), dir));
-//    Vector newUp = Cross(dir, left);
-//    m[0][0] = left.x;
-//    m[1][0] = left.y;
-//    m[2][0] = left.z;
-//    m[3][0] = 0.;
-//    m[0][1] = newUp.x;
-//    m[1][1] = newUp.y;
-//    m[2][1] = newUp.z;
-//    m[3][1] = 0.;
-//    m[0][2] = dir.x;
-//    m[1][2] = dir.y;
-//    m[2][2] = dir.z;
-//    m[3][2] = 0.;
-//    Matrix4x4 camToWorld(m);
-//    return Transform(Inverse(camToWorld), camToWorld);
-//}
-//
-//Transform Transform::orthographic(float znear, float zfar) const
-//{
-//    return Scale(1.f, 1.f, 1.f / (zfar - znear)) *
-//        Translate(Vector(0.f, 0.f, -znear));
-//}
-//
-//Transform Transform::perspective(float fov, float znear, float zfar) const
-//{
-//    // Perform projective divide
-//    Matrix4x4 persp = Matrix4x4(1, 0, 0, 0,
-//        0, 1, 0, 0,
-//        0, 0, f / (f - n), -f*n / (f - n),
-//        0, 0, 1, 0);
-//
-//    // Scale to canonical viewing volume
-//    float invTanAng = 1.f / tanf(Radians(fov) / 2.f);
-//    return Scale(invTanAng, invTanAng, 1) * Transform(persp);
+Transform Transform::lookAt(const Point &pos, const Point &look, const Vector &up) const
+{
+    float m[4][4];
+    // Initialize fourth column of viewing matrix
+    m[0][3] = pos.x;
+    m[1][3] = pos.y;
+    m[2][3] = pos.z;
+    m[3][3] = 1;
+
+    // Initialize first three columns of viewing matrix
+    Vector dir = (look - pos).normalize();
+    /*if (Cross(Normalize(up), dir).Length() == 0) {
+        Error("\"up\" vector (%f, %f, %f) and viewing direction (%f, %f, %f) "
+            "passed to LookAt are pointing in the same direction.  Using "
+            "the identity transformation.", up.x, up.y, up.z, dir.x, dir.y,
+            dir.z);
+        return Transform();
+    }*/
+    Vector left = Normalize(Cross(Normalize(up), dir));
+    Vector newUp = Cross(dir, left);
+    m[0][0] = left.x;
+    m[1][0] = left.y;
+    m[2][0] = left.z;
+    m[3][0] = 0.;
+    m[0][1] = newUp.x;
+    m[1][1] = newUp.y;
+    m[2][1] = newUp.z;
+    m[3][1] = 0.;
+    m[0][2] = dir.x;
+    m[1][2] = dir.y;
+    m[2][2] = dir.z;
+    m[3][2] = 0.;
+    Matrix4x4 camToWorld(m);
+    return Transform(inverse(camToWorld), camToWorld);
+}
+
+Transform Transform::orthographic(float znear, float zfar) const
+{
+    return scale(1.f, 1.f, 1.f / (zfar - znear)) *
+        translate(Vector(0.f, 0.f, -znear));
+}
+
+Transform Transform::perspective(float fov, float znear, float zfar) const
+{
+    // Perform projective divide
+    Matrix4x4 persp = Matrix4x4(1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, f / (f - n), -f*n / (f - n),
+        0, 0, 1, 0);
+
+    // Scale to canonical viewing volume
+    float invTanAng = 1.f / tanf(radians(fov) / 2.f);
+    return scale(invTanAng, invTanAng, 1) * Transform(persp);
 //}
 
 

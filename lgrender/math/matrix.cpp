@@ -163,3 +163,19 @@ Matrix<R, C> Matrix<R, C>::inverse() const
 
 }
 
+template <int R, int C>
+static const Matrix<R, C> Matrix<R, C>::identity()
+{
+    LG_ASSERT(R == C);
+    Matrix im;
+    for (int k = 0; k < R; ++k)
+        im[k][k] = 1;
+    return im;
+}
+
+template <int R, int C>
+static const Matrix<R, C> Matrix<R, C>::zero()
+{
+    return Matrix();
+}
+

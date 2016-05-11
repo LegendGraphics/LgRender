@@ -48,7 +48,7 @@ ENDIF()
 
  
 
-INCLUDE_DIRECTORIES ( lgrender )
+INCLUDE_DIRECTORIES ( ${CMAKE_SOURCE_DIR} )
   
 FILE( GLOB core 			  "lgrender/core/*.*" ) 
 FILE( GLOB math 			  "lgrender/math/*.*" )  

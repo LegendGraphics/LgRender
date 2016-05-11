@@ -1,8 +1,8 @@
 #ifndef LGRENDER_CORE_TRANSFORM_H
 #define LGRENDER_CORE_TRANSFORM_H
 
-#include "matrix.h"
-#include "geometry.h"
+#include "lgrender/math/matrix.h"
+#include "lgrender/core/geometry.h"
 
 class Transform
 {
@@ -13,8 +13,6 @@ public:
 
     bool operator==(const Transform& t) const;
     bool operator!=(const Transform& t) const;
-    /*Matrix operator*(const Transform& t) const;
-    void operator*=(const Matrix<OtherR, OtherC>& mat);*/
 
     Transform operator*(const Transform &t) const;
 

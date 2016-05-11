@@ -1,7 +1,7 @@
 #ifndef LGRENDER_CORE_MATRIX_H
 #define LGRENDER_CORE_MATRIX_H
 
-#include "types.h"
+//#include "types.h"
 
 template <int R, int C>
 class Matrix
@@ -34,6 +34,9 @@ public:
 
     Matrix transpose() const;
     Matrix inverse() const;
+
+    static const Matrix identity();
+    static const Matrix zero();
 
 private:
     float _m[R][C];
