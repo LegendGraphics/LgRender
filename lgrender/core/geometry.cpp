@@ -1,7 +1,7 @@
 
 #include <cmath>
 
-#include "geometry.h"
+#include "lgrender/core/geometry.h"
 
 Triple::Triple()
 {
@@ -202,4 +202,23 @@ bool BoundingBox::operator!=(const BoundingBox &bbox) const
     return (_pmin != bbox._pmin) || (_pmax != bbox._pmax);
 }
 
+Point& BoundingBox::pmin() 
+{
+    return _pmin;
+}
+
+Point& BoundingBox::pmax()
+{
+    return _pmax;
+}
+
+const Point& BoundingBox::pmin() const
+{
+    return _pmin;
+}
+
+const Point& BoundingBox::pmax() const
+{
+    return _pmax;
+}
 

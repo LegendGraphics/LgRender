@@ -1,6 +1,7 @@
-#include "matrix.h"
 
 #include <cstring>
+
+#include "lgrender/math/matrix.h"
 
 template <int R, int C>
 Matrix<R, C>::Matrix()

@@ -1,4 +1,5 @@
 #include "transform.h"
+#include "lgrender/math/math_utils.h"
 
 Transform::Transform()
     :m_(Matrix4x4::identity()),
@@ -78,6 +79,20 @@ inline Ray Transform::operator()(const Ray &r) const
     ret._o= (*this)(r._o);
     ret._d = (*this)(r._d);
  
+    return ret;
+}
+
+inline BoundingBox Transform::operator()(const BoundingBox &b) const 
+{
+    const Transform &M = *this;
+    BoundingBox ret(M(Point(b.pmin().x, b.pmin().y, b.pmin().z)));
+    ret = Union(ret, M(Point(b.pmax().x, b.pmin().y, b.pmin().z)));
+    ret = Union(ret, M(Point(b.pmin().x, b.pmax().y, b.pmin().z)));
+    ret = Union(ret, M(Point(b.pmin().x, b.pmin().y, b.pmax().z)));
+    ret = Union(ret, M(Point(b.pmin().x, b.pmax().y, b.pmax().z)));
+    ret = Union(ret, M(Point(b.pmax().x, b.pmax().y, b.pmin().z)));
+    ret = Union(ret, M(Point(b.pmax().x, b.pmin().y, b.pmax().z)));
+    ret = Union(ret, M(Point(b.pmax().x, b.pmax().y, b.pmax().z)));
     return ret;
 }
 
@@ -189,8 +204,8 @@ Transform Transform::lookAt(const Point &pos, const Point &look, const Vector &u
             dir.z);
         return Transform();
     }*/
-    Vector left = Normalize(Cross(Normalize(up), dir));
-    Vector newUp = Cross(dir, left);
+    Vector left = normalize(cross(normalize(up), dir));
+    Vector newUp = cross(dir, left);
     m[0][0] = left.x;
     m[1][0] = left.y;
     m[2][0] = left.z;
@@ -204,7 +219,7 @@ Transform Transform::lookAt(const Point &pos, const Point &look, const Vector &u
     m[2][2] = dir.z;
     m[3][2] = 0.;
     Matrix4x4 camToWorld(m);
-    return Transform(inverse(camToWorld), camToWorld);
+    return Transform(camToWorld.inverse(), camToWorld);
 }
 
 Transform Transform::orthographic(float znear, float zfar) const
@@ -218,12 +233,12 @@ Transform Transform::perspective(float fov, float znear, float zfar) const
     // Perform projective divide
     Matrix4x4 persp = Matrix4x4(1, 0, 0, 0,
         0, 1, 0, 0,
-        0, 0, f / (f - n), -f*n / (f - n),
+        0, 0, zfar / (zfar - znear), -zfar*znear / (zfar - znear),
         0, 0, 1, 0);
 
     // Scale to canonical viewing volume
     float invTanAng = 1.f / tanf(radians(fov) / 2.f);
     return scale(invTanAng, invTanAng, 1) * Transform(persp);
-//}
+}
 
 

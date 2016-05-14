@@ -20,6 +20,7 @@ public:
     inline Vector operator()(const Vector& v) const;
     inline Normal operator()(const Normal& n) const;
     inline Ray operator()(const Ray& r) const;
+    inline BoundingBox operator()(const BoundingBox &b) const;
 
     Transform inverse() const;
     Transform transpose() const;

@@ -83,6 +83,12 @@ public:
     bool operator==(const BoundingBox &bbox) const;
     bool operator!=(const BoundingBox &bbox) const;
 
+    inline Point& pmin();
+    inline Point& pmax();
+
+    inline const Point& pmin() const;
+    inline const Point& pmax() const;
+
     // other operations
 private:
     Point _pmin, _pmax;

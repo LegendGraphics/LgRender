@@ -4,11 +4,11 @@
 
 #include <vector>
 
-#include "lgrender.h"
-#include "geometry.h"
-#include "diff_geometry.h"
-#include "transform.h"
-#include "memory.h"
+#include "lgrender/core/lgrender.h"
+#include "lgrender/core/geometry.h"
+#include "lgrender/core/diff_geometry.h"
+#include "lgrender/core/transform.h"
+#include "lgrender/core/memory.h"
 
 class Shape : public ReferenceCounted 
 {

@@ -5,6 +5,8 @@
 
 #include <cmath>
 
+#include<lgrender/core/geometry.h>
+
 // Global Inline Functions
 inline float lerp(float t, float v1, float v2) 
 {
@@ -61,7 +63,8 @@ inline bool isPowerOf2(int v)
 }
 
 
-inline int floor2int(float val) {
+inline int floor2int(float val) 
+{
     return (int)floorf(val);
 }
 
@@ -73,18 +76,39 @@ inline int log2int(float v)
 
 
 
-inline int round2int(float val) {
+inline int round2int(float val) 
+{
     return floor2int(val + 0.5f);
 }
 
 
-inline int float2int(float val) {
+inline int float2int(float val) 
+{
     return (int)val;
 }
 
 
-inline int ceil2int(float val) {
+inline int ceil2int(float val)
+{
     return (int)ceilf(val);
+}
+
+inline float dot(const Triple& t1, const Triple& t2)
+{
+    return (t1.x() * t2.x() + t1.y() * t2.y() + t1.z() * t2.z());
+}
+
+inline Triple cross(const Triple& t1, const Triple& t2)
+{
+    return Triple((t1.y() * t2.z()) - (t1.z() * t2.y()),
+        (t1.z() * t2.x()) - (t1.x() * t2.z()),
+        (t1.x() * t2.y()) - (t1.y() * t2.x()));
+}
+
+inline Triple normalize(const Triple& t)
+{
+    float len = t.length();
+    return Triple(t.x() / len, t.y() / len, t.z() / len);
 }
 
 
