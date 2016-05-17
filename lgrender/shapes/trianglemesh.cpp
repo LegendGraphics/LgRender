@@ -2,82 +2,81 @@
 #include "trianglemesh.h"
 
 
-//// TriangleMesh Method Definitions
-//TriangleMesh::TriangleMesh(const Transform *o2w, const Transform *w2o,
-//    bool ro, int nt, int nv, const int *vi, const Point *P,
-//    const Normal *N, const Vector *S, const float *uv,
-//    const Reference<Texture<float> > &atex)
-//    : Shape(o2w, w2o, ro), alphaTexture(atex) {
-//    ntris = nt;
-//    nverts = nv;
-//    vertexIndex = new int[3 * ntris];
-//    memcpy(vertexIndex, vi, 3 * ntris * sizeof(int));
-//    // Copy _uv_, _N_, and _S_ vertex data, if present
-//    if (uv) {
-//        uvs = new float[2 * nverts];
-//        memcpy(uvs, uv, 2 * nverts*sizeof(float));
-//    }
-//    else uvs = NULL;
-//    p = new Point[nverts];
-//    if (N) {
-//        n = new Normal[nverts];
-//        memcpy(n, N, nverts*sizeof(Normal));
-//    }
-//    else n = NULL;
-//    if (S) {
-//        s = new Vector[nverts];
-//        memcpy(s, S, nverts*sizeof(Vector));
-//    }
-//    else s = NULL;
-//
-//    // Transform mesh vertices to world space
-//    for (int i = 0; i < nverts; ++i)
-//        p[i] = (*ObjectToWorld)(P[i]);
-//}
-//
-//
-//TriangleMesh::~TriangleMesh() {
-//    delete[] vertexIndex;
-//    delete[] p;
-//    delete[] s;
-//    delete[] n;
-//    delete[] uvs;
-//}
-//
-//
-//BBox TriangleMesh::ObjectBound() const {
-//    BBox objectBounds;
-//    for (int i = 0; i < nverts; i++)
-//        objectBounds = Union(objectBounds, (*WorldToObject)(p[i]));
-//    return objectBounds;
-//}
-//
-//
-//BBox TriangleMesh::WorldBound() const {
-//    BBox worldBounds;
-//    for (int i = 0; i < nverts; i++)
-//        worldBounds = Union(worldBounds, p[i]);
-//    return worldBounds;
-//}
-//
-//
-//void TriangleMesh::Refine(vector<Reference<Shape> > &refined) const {
-//    for (int i = 0; i < ntris; ++i)
-//        refined.push_back(new Triangle(ObjectToWorld,
-//            WorldToObject, ReverseOrientation,
-//            (TriangleMesh *)this, i));
-//}
+// TriangleMesh Method Definitions
+TriangleMesh::TriangleMesh(const Transform *o2w, const Transform *w2o,
+    bool ro, int nt, int nv, const int *vi, const Point *P,
+    const Normal *N, const Vector *S, const float *uv,
+    const Reference<Texture<float> > &atex)
+    : Shape(o2w, w2o, ro), alphaTexture(atex) {
+    ntris = nt;
+    nverts = nv;
+    vertexIndex = new int[3 * ntris];
+    memcpy(vertexIndex, vi, 3 * ntris * sizeof(int));
+    // Copy _uv_, _N_, and _S_ vertex data, if present
+    if (uv) {
+        uvs = new float[2 * nverts];
+        memcpy(uvs, uv, 2 * nverts*sizeof(float));
+    }
+    else uvs = NULL;
+    p = new Point[nverts];
+    if (N) {
+        n = new Normal[nverts];
+        memcpy(n, N, nverts*sizeof(Normal));
+    }
+    else n = NULL;
+    if (S) {
+        s = new Vector[nverts];
+        memcpy(s, S, nverts*sizeof(Vector));
+    }
+    else s = NULL;
+
+    // Transform mesh_ vertices to world space
+    for (int i = 0; i < nverts; ++i)
+        p[i] = (*object2world_)(P[i]);
+}
+
+
+TriangleMesh::~TriangleMesh() {
+    delete[] vertexIndex;
+    delete[] p;
+    delete[] s;
+    delete[] n;
+    delete[] uvs;
+}
+
+
+BoundingBox TriangleMesh::object_bound() const {
+    BoundingBox objectBounds;
+    for (int i = 0; i < nverts; i++)
+        objectBounds = Union(objectBounds, (*world2object_)(p[i]));
+    return objectBounds;
+}
+
+
+BoundingBox TriangleMesh::world_bound() const {
+    BoundingBox worldBounds;
+    for (int i = 0; i < nverts; i++)
+        worldBounds = Union(worldBounds, p[i]);
+    return worldBounds;
+}
+
+
+void TriangleMesh::refine(vector<Reference<Shape> > &refined) const {
+    for (int i = 0; i < ntris; ++i)
+        refined.push_back(new Triangle(object2world_,
+            world2object_, false,
+            (TriangleMesh *)this, i));
+}
 
 
 Triangle::Triangle(const Transform *o2w, const Transform *w2o, bool ro,
-    TriangleMesh *mesh, int n)
-    : Shape(o2w, w2o, ro) {
+    TriangleMesh *mesh_, int n)
+    : Shape(o2w, w2o, ro)
 {
-    mesh_ = mesh;
+    mesh_ = mesh_;
     v_ = &mesh_->vertexIndex[3 * n];
-    //   PBRT_CREATED_TRIANGLE(this);
+    //   LGRENDER_CREATED_TRIANGLE(this);
 }
-
 
 BoundingBox Triangle::object_bound() const
 {
@@ -112,34 +111,34 @@ bool Triangle::intersect(const Ray &ray, float *t_hit, float *ray_epsilon,
     const Point &p3 = mesh_->p[v_[2]];
     Vector e1 = p2 - p1;
     Vector e2 = p3 - p1;
-    Vector s1 = Cross(ray._d, e2);
-    float divisor = Dot(s1, e1);
+    Vector s1 = Vector::cross(ray._d, e2);
+    float divisor = Vector::dot(s1, e1);
 
     if (divisor == 0.)
         return false;
     float invDivisor = 1.f / divisor;
 
     // Compute first barycentric coordinate
-    Vector s = ray.o - p1;
-    float b1 = Dot(s, s1) * invDivisor;
+    Vector s = ray._o - p1;
+    float b1 = Vector::dot(s, s1) * invDivisor;
     if (b1 < 0. || b1 > 1.)
         return false;
 
     // Compute second barycentric coordinate
-    Vector s2 = Cross(s, e1);
-    float b2 = Dot(ray.d, s2) * invDivisor;
+    Vector s2 = Vector::cross(s, e1);
+    float b2 = Vector::dot(ray._d, s2) * invDivisor;
     if (b2 < 0. || b1 + b2 > 1.)
         return false;
 
     // Compute _t_ to intersection point
-    float t = Dot(e2, s2) * invDivisor;
-    if (t < ray.mint || t > ray.maxt)
+    float t = Vector::dot(e2, s2) * invDivisor;
+    if (t < ray._tmin || t > ray._tmax)
         return false;
 
     // Compute triangle partial derivatives
     Vector dpdu, dpdv;
     float uvs[3][2];
-    GetUVs(uvs);
+   // GetUVs(uvs);
 
     // Compute deltas for triangle partial derivatives
     float du1 = uvs[0][0] - uvs[2][0];
@@ -150,7 +149,7 @@ bool Triangle::intersect(const Ray &ray, float *t_hit, float *ray_epsilon,
     float determinant = du1 * dv2 - dv1 * du2;
     if (determinant == 0.f) {
         // Handle zero determinant for triangle partial derivative matrix
-        CoordinateSystem(Normalize(Cross(e2, e1)), &dpdu, &dpdv);
+        //CoordinateSystem(Normalize(Cross(e2, e1)), &dpdu, &dpdv);
     }
     else {
         float invdet = 1.f / determinant;
@@ -164,12 +163,12 @@ bool Triangle::intersect(const Ray &ray, float *t_hit, float *ray_epsilon,
     float tv = b0*uvs[0][1] + b1*uvs[1][1] + b2*uvs[2][1];
 
     // Test intersection against alpha texture, if present
-    if (ray.depth != -1) {
-        if (mesh->alphaTexture) {
+    if (ray._depth != -1) {
+        if (mesh_->alphaTexture) {
             DifferentialGeometry dgLocal(ray(t), dpdu, dpdv,
                 Normal(0, 0, 0), Normal(0, 0, 0),
                 tu, tv, this);
-            if (mesh->alphaTexture->Evaluate(dgLocal) == 0.f)
+            if (mesh_->alphaTexture->Evaluate(dgLocal) == 0.f)
                 return false;
         }
     }
@@ -178,53 +177,53 @@ bool Triangle::intersect(const Ray &ray, float *t_hit, float *ray_epsilon,
     *dg = DifferentialGeometry(ray(t), dpdu, dpdv,
         Normal(0, 0, 0), Normal(0, 0, 0),
         tu, tv, this);
-    *tHit = t;
-    *rayEpsilon = 1e-3f * *tHit;
-    PBRT_RAY_TRIANGLE_INTERSECTION_HIT(const_cast<Ray *>(&ray), t);
+    *t_hit = t;
+    *ray_epsilon = 1e-3f * *t_hit;
+    //PBRT_RAY_TRIANGLE_INTERSECTION_HIT(const_cast<Ray *>(&ray), t);
     return true;
 }
 
 
 bool Triangle::intersectP(const Ray &ray) const {
-    PBRT_RAY_TRIANGLE_INTERSECTIONP_TEST(const_cast<Ray *>(&ray), const_cast<Triangle *>(this));
+  //  PBRT_RAY_TRIANGLE_INTERSECTIONP_TEST(const_cast<Ray *>(&ray), const_cast<Triangle *>(this));
     // Compute $\VEC{s}_1$
 
     // Get triangle vertices in _p1_, _p2_, and _p3_
-    const Point &p1 = mesh->p[v[0]];
-    const Point &p2 = mesh->p[v[1]];
-    const Point &p3 = mesh->p[v[2]];
+    const Point &p1 = mesh_->p[v_[0]];
+    const Point &p2 = mesh_->p[v_[1]];
+    const Point &p3 = mesh_->p[v_[2]];
     Vector e1 = p2 - p1;
     Vector e2 = p3 - p1;
-    Vector s1 = Cross(ray.d, e2);
-    float divisor = Dot(s1, e1);
+    Vector s1 = Vector::cross(ray._d, e2);
+    float divisor = Vector::dot(s1, e1);
 
     if (divisor == 0.)
         return false;
     float invDivisor = 1.f / divisor;
 
     // Compute first barycentric coordinate
-    Vector d = ray.o - p1;
-    float b1 = Dot(d, s1) * invDivisor;
+    Vector d = ray._o - p1;
+    float b1 = Vector::dot(d, s1) * invDivisor;
     if (b1 < 0. || b1 > 1.)
         return false;
 
     // Compute second barycentric coordinate
-    Vector s2 = Cross(d, e1);
-    float b2 = Dot(ray.d, s2) * invDivisor;
+    Vector s2 = Vector::cross(d, e1);
+    float b2 = Vector::dot(ray._d, s2) * invDivisor;
     if (b2 < 0. || b1 + b2 > 1.)
         return false;
 
     // Compute _t_ to intersection point
-    float t = Dot(e2, s2) * invDivisor;
-    if (t < ray.mint || t > ray.maxt)
+    float t = Vector::dot(e2, s2) * invDivisor;
+    if (t < ray._tmin || t > ray._tmax)
         return false;
 
     // Test shadow ray intersection against alpha texture, if present
-    if (ray.depth != -1 && mesh->alphaTexture) {
+    if (ray._depth != -1 && mesh_->alphaTexture) {
         // Compute triangle partial derivatives
         Vector dpdu, dpdv;
         float uvs[3][2];
-        GetUVs(uvs);
+      //  GetUVs(uvs);
 
         // Compute deltas for triangle partial derivatives
         float du1 = uvs[0][0] - uvs[2][0];
@@ -235,7 +234,7 @@ bool Triangle::intersectP(const Ray &ray) const {
         float determinant = du1 * dv2 - dv1 * du2;
         if (determinant == 0.f) {
             // Handle zero determinant for triangle partial derivative matrix
-            CoordinateSystem(Normalize(Cross(e2, e1)), &dpdu, &dpdv);
+          //  CoordinateSystem(Normalize(Cross(e2, e1)), &dpdu, &dpdv);
         }
         else {
             float invdet = 1.f / determinant;
@@ -250,27 +249,27 @@ bool Triangle::intersectP(const Ray &ray) const {
         DifferentialGeometry dgLocal(ray(t), dpdu, dpdv,
             Normal(0, 0, 0), Normal(0, 0, 0),
             tu, tv, this);
-        if (mesh->alphaTexture->Evaluate(dgLocal) == 0.f)
+        if (mesh_->alphaTexture->Evaluate(dgLocal) == 0.f)
             return false;
     }
-    PBRT_RAY_TRIANGLE_INTERSECTIONP_HIT(const_cast<Ray *>(&ray), t);
+   // PBRT_RAY_TRIANGLE_INTERSECTIONP_HIT(const_cast<Ray *>(&ray), t);
     return true;
 }
 
 
 float Triangle::area() const {
     // Get triangle vertices in _p1_, _p2_, and _p3_
-    const Point &p1 = mesh_->p[v[0]];
-    const Point &p2 = mesh_->p[v[1]];
-    const Point &p3 = mesh_->p[v[2]];
-    return 0.5f * Cross(p2 - p1, p3 - p1).Length();
+    const Point &p1 = mesh_->p[v_[0]];
+    const Point &p2 = mesh_->p[v_[1]];
+    const Point &p3 = mesh_->p[v_[2]];
+    return 0.5f * Vector::cross(p2 - p1, p3 - p1).length();
 }
 
 
 //void Triangle::GetShadingGeometry(const Transform &obj2world,
 //    const DifferentialGeometry &dg,
 //    DifferentialGeometry *dgShading) const {
-//    if (!mesh->n && !mesh->s) {
+//    if (!mesh_->n && !mesh_->s) {
 //        *dgShading = dg;
 //        return;
 //    }
@@ -296,13 +295,13 @@ float Triangle::area() const {
 //    // Use _n_ and _s_ to compute shading tangents for triangle, _ss_ and _ts_
 //    Normal ns;
 //    Vector ss, ts;
-//    if (mesh->n) ns = Normalize(obj2world(b[0] * mesh->n[v[0]] +
-//        b[1] * mesh->n[v[1]] +
-//        b[2] * mesh->n[v[2]]));
+//    if (mesh_->n) ns = Normalize(obj2world(b[0] * mesh_->n[v[0]] +
+//        b[1] * mesh_->n[v[1]] +
+//        b[2] * mesh_->n[v[2]]));
 //    else   ns = dg.nn;
-//    if (mesh->s) ss = Normalize(obj2world(b[0] * mesh->s[v[0]] +
-//        b[1] * mesh->s[v[1]] +
-//        b[2] * mesh->s[v[2]]));
+//    if (mesh_->s) ss = Normalize(obj2world(b[0] * mesh_->s[v[0]] +
+//        b[1] * mesh_->s[v[1]] +
+//        b[2] * mesh_->s[v[2]]));
 //    else   ss = Normalize(dg.dpdu);
 //
 //    ts = Cross(ss, ns);
@@ -315,7 +314,7 @@ float Triangle::area() const {
 //    Normal dndu, dndv;
 //
 //    // Compute $\dndu$ and $\dndv$ for triangle shading geometry
-//    if (mesh->n) {
+//    if (mesh_->n) {
 //        float uvs[3][2];
 //        GetUVs(uvs);
 //        // Compute deltas for triangle partial derivatives of normal
@@ -323,8 +322,8 @@ float Triangle::area() const {
 //        float du2 = uvs[1][0] - uvs[2][0];
 //        float dv1 = uvs[0][1] - uvs[2][1];
 //        float dv2 = uvs[1][1] - uvs[2][1];
-//        Normal dn1 = mesh->n[v[0]] - mesh->n[v[2]];
-//        Normal dn2 = mesh->n[v[1]] - mesh->n[v[2]];
+//        Normal dn1 = mesh_->n[v[0]] - mesh_->n[v[2]];
+//        Normal dn2 = mesh_->n[v[1]] - mesh_->n[v[2]];
 //        float determinant = du1 * dv2 - dv1 * du2;
 //        if (determinant == 0.f)
 //            dndu = dndv = Normal(0, 0, 0);
@@ -357,23 +356,23 @@ float Triangle::area() const {
 //    // XXX should complain if uvs aren't an array of 2...
 //    if (uvs) {
 //        if (nuvi < 2 * npi) {
-//            Error("Not enough of \"uv\"s for triangle mesh.  Expencted %d, "
+//            Error("Not enough of \"uv\"s for triangle mesh_.  Expencted %d, "
 //                "found %d.  Discarding.", 2 * npi, nuvi);
 //            uvs = NULL;
 //        }
 //        else if (nuvi > 2 * npi)
 //            Warning("More \"uv\"s provided than will be used for triangle "
-//                "mesh.  (%d expcted, %d found)", 2 * npi, nuvi);
+//                "mesh_.  (%d expcted, %d found)", 2 * npi, nuvi);
 //    }
 //    if (!vi || !P) return NULL;
 //    const Vector *S = params.FindVector("S", &nsi);
 //    if (S && nsi != npi) {
-//        Error("Number of \"S\"s for triangle mesh must match \"P\"s");
+//        Error("Number of \"S\"s for triangle mesh_ must match \"P\"s");
 //        S = NULL;
 //    }
 //    const Normal *N = params.FindNormal("N", &nni);
 //    if (N && nni != npi) {
-//        Error("Number of \"N\"s for triangle mesh must match \"P\"s");
+//        Error("Number of \"N\"s for triangle mesh_ must match \"P\"s");
 //        N = NULL;
 //    }
 //    if (discardDegnerateUVs && uvs && N) {
@@ -389,7 +388,7 @@ float Triangle::area() const {
 //                    uvs[2 * vp[1] + 1] == uvs[2 * vp[2] + 1]) ||
 //                (uvs[2 * vp[2]] == uvs[2 * vp[0]] &&
 //                    uvs[2 * vp[2] + 1] == uvs[2 * vp[0] + 1])) {
-//                Warning("Degenerate uv coordinates in triangle mesh.  Discarding all uvs.");
+//                Warning("Degenerate uv coordinates in triangle mesh_.  Discarding all uvs.");
 //                uvs = NULL;
 //                break;
 //            }
@@ -422,9 +421,9 @@ float Triangle::area() const {
 //    float b1, b2;
 //    UniformSampleTriangle(u1, u2, &b1, &b2);
 //    // Get triangle vertices in _p1_, _p2_, and _p3_
-//    const Point &p1 = mesh->p[v[0]];
-//    const Point &p2 = mesh->p[v[1]];
-//    const Point &p3 = mesh->p[v[2]];
+//    const Point &p1 = mesh_->p[v[0]];
+//    const Point &p2 = mesh_->p[v[1]];
+//    const Point &p3 = mesh_->p[v[2]];
 //    Point p = b1 * p1 + b2 * p2 + (1.f - b1 - b2) * p3;
 //    Normal n = Normal(Cross(p2 - p1, p3 - p1));
 //    *Ns = Normalize(n);

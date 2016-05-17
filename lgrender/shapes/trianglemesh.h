@@ -8,6 +8,8 @@
 using std::map;
 using std::vector;
 
+template <typename T> class Texture;
+
 // TriangleMesh Declarations
 class TriangleMesh : public Shape 
 {
@@ -18,10 +20,10 @@ public:
         const Point *P, const Normal *N, const Vector *S,
         const float *uv, const Reference<Texture<float> > &atex);
     ~TriangleMesh();
-    BoundingBox ObjectBound() const;
-    BoundingBox WorldBound() const;
-    bool CanIntersect() const { return false; }
-    void Refine(vector<Reference<Shape> > &refined) const;
+    BoundingBox object_bound() const;
+    BoundingBox world_bound() const;
+    bool canIntersect() const { return false; }
+    void refine(vector<Reference<Shape> > &refined) const;
     friend class Triangle;
     template <typename T> friend class VertexTexture;
 protected:
