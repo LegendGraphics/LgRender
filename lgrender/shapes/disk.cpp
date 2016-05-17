@@ -1,12 +1,13 @@
 
-#include "disk.h"
+#include "lgrender/shapes/disk.h"
+#include "lgrender/math/math_utils.h"
 
 Disk::Disk(const Transform *o2w, const Transform *w2o, bool ro,
-    float height_, float radius_, float inner_radius, float phi_max)
+    float height, float radius, float inner_radius, float phi_max)
     : Shape(o2w, w2o, ro) 
 {
-    height_ = height_;
-    radius_ = radius_;
+    height_ = height;
+    radius_ = radius;
     inner_radius_ = inner_radius;
     phi_max_ = radians(clamp(phi_max, 0.0f, 360.0f));
 }
@@ -22,8 +23,7 @@ BoundingBox Disk::object_bound() const
 bool Disk::intersect(const Ray &r, float *t_hit, float *ray_epsilon,
     DifferentialGeometry *dg) const {
     // Transform _Ray_ to object space
-    Ray ray;
-    (*world2object_)(r, &ray);
+    Ray ray = (*world2object_)(r);
 
     // Compute plane intersection for disk
     if (fabsf(ray._d.z()) < 1e-7) return false;
@@ -39,7 +39,7 @@ bool Disk::intersect(const Ray &r, float *t_hit, float *ray_epsilon,
 
     // Test disk $\phi$ value against $\phimax$
     float phi = atan2f(phit.y(), phit.x());
-    if (phi < 0) phi += 2. * M_PI;
+    if (phi < 0) phi += 2. * LG_PI;
     if (phi > phi_max_)
         return false;
 
@@ -71,7 +71,7 @@ bool Disk::intersect(const Ray &r, float *t_hit, float *ray_epsilon,
 bool Disk::intersectP(const Ray &r) const {
     // Transform _Ray_ to object space
     Ray ray;
-    (*world2object_)(r, &ray);
+    Ray ray = (*world2object_)(r);
 
     // Compute plane intersection for disk
     if (fabsf(ray._d.z()) < 1e-7) return false;
@@ -87,7 +87,7 @@ bool Disk::intersectP(const Ray &r) const {
 
     // Test disk $\phi$ value against $\phimax$
     float phi = atan2f(phit.y(), phit.x());
-    if (phi < 0) phi += 2. * M_PI;
+    if (phi < 0) phi += 2. * LG_PI;
     if (phi > phi_max_)
         return false;
     return true;

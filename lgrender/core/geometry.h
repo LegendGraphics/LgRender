@@ -23,13 +23,15 @@ public:
 
     Triple operator+(const Triple &t) const;   
     Triple operator-(const Triple &t) const;   
-    Triple operator*(float f) const;   
+    Triple operator*(float f) const;
     Triple operator/(float f) const;
     
     void operator+=(const Triple &t);
     void operator-=(const Triple &t);
     void operator*=(float f);
     void operator/=(float f);
+
+    friend Triple operator*(float f, const Triple& t);
 
     Triple operator-() const;
 
@@ -47,8 +49,25 @@ public:
     Triple cross(const Triple& t) const;
     Triple normalize() const;
 
+    static inline float dot(const Triple& t1, const Triple& t2)
+    {
+        return (t1.x() * t2.x() + t1.y() * t2.y() + t1.z() * t2.z());
+    }
+
+    static inline Triple cross(const Triple& t1, const Triple& t2)
+    {
+        return Triple((t1.y() * t2.z()) - (t1.z() * t2.y()),
+            (t1.z() * t2.x()) - (t1.x() * t2.z()),
+            (t1.x() * t2.y()) - (t1.y() * t2.x()));
+    }
+
+    static inline Triple normalize(const Triple& t)
+    {
+        float len = t.length();
+        return Triple(t.x() / len, t.y() / len, t.z() / len);
+    }
+
 private:
-    // Triple Public Data
     float _x, _y, _z;
 };
 

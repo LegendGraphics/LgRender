@@ -14,7 +14,7 @@ Shape::Shape(const Transform *o2w, const Transform *w2o, bool ro)
       shape_id_(next_shape_id_++) 
 {
     // Update shape creation statistics
-   // PBRT_CREATED_SHAPE(this);
+   // LGRENDER_CREATED_SHAPE(this);
 }
 
 

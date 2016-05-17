@@ -2,7 +2,7 @@
 #ifndef LGRENDER_SHAPES_SPHERE_H
 #define LGRENDER_SHAPES_SPHERE_H
 
-#include "shape.h"
+#include "lgrender/core/shape.h"
 
 class Sphere : public Shape 
 {

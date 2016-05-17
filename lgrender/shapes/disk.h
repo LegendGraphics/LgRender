@@ -2,7 +2,7 @@
 #ifndef LGRENDER_SHAPES_DISK_H
 #define LGRENDER_SHAPES_DISK_H
 
-#include "shape.h"
+#include "lgrender/core/shape.h"
 
 class Disk : public Shape 
 {

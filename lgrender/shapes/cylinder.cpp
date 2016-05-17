@@ -1,5 +1,6 @@
 
-#include "cylinder.h"
+#include "lgrender/shapes/cylinder.h"
+#include "lgrender/math/math_utils.h"
 
 // Cylinder Method Definitions
 Cylinder::Cylinder(const Transform *o2w, const Transform *w2o, bool ro,
@@ -26,8 +27,7 @@ bool Cylinder::intersect(const Ray &r, float *t_hit, float *ray_epsilon,
     float phi;
     Point phit;
     // Transform _Ray_ to object space
-    Ray ray;
-    (*world2object_)(r, &ray);
+    Ray ray = (*world2object_)(r);
 
     // Compute quadratic cylinder coefficients
     float A = ray._d.x()*ray._d.x() + ray._d.y()*ray._d.y();
@@ -36,7 +36,7 @@ bool Cylinder::intersect(const Ray &r, float *t_hit, float *ray_epsilon,
 
     // Solve quadratic equation for _t_ values
     float t0, t1;
-    if (!Quadratic(A, B, C, &t0, &t1))
+    if (!quadratic(A, B, C, &t0, &t1))
         return false;
 
     // Compute intersection distance along ray
@@ -51,7 +51,7 @@ bool Cylinder::intersect(const Ray &r, float *t_hit, float *ray_epsilon,
     // Compute cylinder hit point and $\phi$
     phit = ray(thit);
     phi = atan2f(phit.y(), phit.x());
-    if (phi < 0.) phi += 2.f*M_PI;
+    if (phi < 0.) phi += 2.f*LG_PI;
 
     // Test cylinder intersection against clipping parameters
     if (phit.z() < z_min_ || phit.z() > z_max_ || phi > phi_max_) {
@@ -61,7 +61,7 @@ bool Cylinder::intersect(const Ray &r, float *t_hit, float *ray_epsilon,
         // Compute cylinder hit point and $\phi$
         phit = ray(thit);
         phi = atan2f(phit.y(), phit.x());
-        if (phi < 0.) phi += 2.f*M_PI;
+        if (phi < 0.) phi += 2.f*LG_PI;
         if (phit.z() < z_min_ || phit.z() > z_max_ || phi > phi_max_)
             return false;
     }
@@ -112,8 +112,7 @@ bool Cylinder::intersectP(const Ray &r) const {
     float phi;
     Point phit;
     // Transform _Ray_ to object space
-    Ray ray;
-    (*world2object_)(r, &ray);
+    Ray ray = (*world2object_)(r);
 
     // Compute quadratic cylinder coefficients
     float A = ray._d.x()*ray._d.x() + ray._d.y()*ray._d.y();
@@ -122,7 +121,7 @@ bool Cylinder::intersectP(const Ray &r) const {
 
     // Solve quadratic equation for _t_ values
     float t0, t1;
-    if (!Quadratic(A, B, C, &t0, &t1))
+    if (!quadratic(A, B, C, &t0, &t1))
         return false;
 
     // Compute intersection distance along ray
@@ -137,7 +136,7 @@ bool Cylinder::intersectP(const Ray &r) const {
     // Compute cylinder hit point and $\phi$
     phit = ray(thit);
     phi = atan2f(phit.y(), phit.x());
-    if (phi < 0.) phi += 2.f*M_PI;
+    if (phi < 0.) phi += 2.f*LG_PI;
 
     // Test cylinder intersection against clipping parameters
     if (phit.z() < z_min_ || phit.z() > z_max_ || phi > phi_max_) {
@@ -147,7 +146,7 @@ bool Cylinder::intersectP(const Ray &r) const {
         // Compute cylinder hit point and $\phi$
         phit = ray(thit);
         phi = atan2f(phit.y(), phit.x());
-        if (phi < 0.) phi += 2.f*M_PI;
+        if (phi < 0.) phi += 2.f*LG_PI;
         if (phit.z() < z_min_ || phit.z() > z_max_ || phi > phi_max_)
             return false;
     }

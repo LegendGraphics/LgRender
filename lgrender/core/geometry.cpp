@@ -34,10 +34,17 @@ Triple Triple::operator-(const Triple &t) const
     LG_ASSERT(!t.hasNaNs());
     return Triple(_x - t._x, _y - t._y, _z - t._z);
 }
+
 Triple Triple::operator*(float f) const
 {
     return Triple(_x*f, _y*f, _z*f);
 }
+
+Triple operator*(float f, const Triple& t)
+{
+    return Triple(t._x*f, t._y*f, t._z*f);
+}
+
 Triple Triple::operator/(float f) const
 {
     return Triple(_x/f, _y/f, _z/f);

@@ -1,6 +1,6 @@
 
-#include "sphere.h"
-#include "utils.h"
+#include "lgrender/shapes/sphere.h"
+#include "lgrender/math/math_utils.h"
 
 Sphere::Sphere(const Transform *o2w, const Transform *w2o, bool ro,
                float rad, float z_min, float z_max, float phi_max)
@@ -21,114 +21,12 @@ BoundingBox Sphere::object_bound() const {
 }
 
 
-//bool Sphere::Intersect(const Ray &r, float *tHit, float *rayEpsilon,
-//                       DifferentialGeometry *dg) const {
-//    float phi;
-//    Point phit;
-//    // Transform _Ray_ to object space
-//    Ray ray;
-//    (*WorldToObject)(r, &ray);
-//
-//    // Compute quadratic sphere coefficients
-//    float A = ray._d.x()*ray._d.x() + ray._d.y()*ray._d.y() + ray._d.z()*ray._d.z();
-//    float B = 2 * (ray._d.x()*ray._o.x() + ray._d.y()*ray._o.y() + ray._d.z()*ray._o.z());
-//    float C = ray._o.x()*ray._o.x() + ray._o.y()*ray._o.y() +
-//              ray._o.z()*ray._o.z() - radius_*radius_;
-//
-//    // Solve quadratic equation for _t_ values
-//    float t0, t1;
-//    if (!Quadratic(A, B, C, &t0, &t1))
-//        return false;
-//
-//    // Compute intersection distance along ray
-//    if (t0 > ray._tmax || t1 < ray._tmin)
-//        return false;
-//    float thit = t0;
-//    if (t0 < ray._tmin) {
-//        thit = t1;
-//        if (thit > ray._tmax) return false;
-//    }
-//
-//    // Compute sphere hit position and $\phi$
-//    phit = ray(thit);
-//    if (phit.x == 0.f && phit.y == 0.f) phit.x = 1e-5f * radius_;
-//    phi = atan2f(phit.y, phit.x);
-//    if (phi < 0.) phi += 2.f*M_PI;
-//
-//    // Test sphere intersection against clipping parameters
-//    if ((z_min_ > -radius_ && phit.z < z_min_) ||
-//        (z_max_ <  radius_ && phit.z > z_max_) || phi > phi_max_) {
-//        if (thit == t1) return false;
-//        if (t1 > ray._tmax) return false;
-//        thit = t1;
-//        // Compute sphere hit position and $\phi$
-//        phit = ray(thit);
-//        if (phit.x == 0.f && phit.y == 0.f) phit.x = 1e-5f * radius_;
-//        phi = atan2f(phit.y, phit.x);
-//        if (phi < 0.) phi += 2.f*M_PI;
-//        if ((z_min_ > -radius_ && phit.z < z_min_) ||
-//            (z_max_ <  radius_ && phit.z > z_max_) || phi > phi_max_)
-//            return false;
-//    }
-//
-//    // Find parametric representation of sphere hit
-//    float u = phi / phi_max_;
-//    float theta = acosf(Clamp(phit.z / radius_, -1.f, 1.f));
-//    float v = (theta - thetaMin) / (thetaMax - thetaMin);
-//
-//    // Compute sphere $\dpdu$ and $\dpdv$
-//    float zradius = sqrtf(phit.x*phit.x + phit.y*phit.y);
-//    float invzradius = 1.f / zradius;
-//    float cosphi = phit.x * invzradius;
-//    float sinphi = phit.y * invzradius;
-//    Vector dpdu(-phi_max_ * phit.y, phi_max_ * phit.x, 0);
-//    Vector dpdv = (thetaMax-thetaMin) *
-//        Vector(phit.z * cosphi, phit.z * sinphi,
-//               -radius_ * sinf(theta));
-//
-//    // Compute sphere $\dndu$ and $\dndv$
-//    Vector d2Pduu = -phi_max_ * phi_max_ * Vector(phit.x, phit.y, 0);
-//    Vector d2Pduv = (thetaMax - thetaMin) * phit.z * phi_max_ *
-//                    Vector(-sinphi, cosphi, 0.);
-//    Vector d2Pdvv = -(thetaMax - thetaMin) * (thetaMax - thetaMin) *
-//                    Vector(phit.x, phit.y, phit.z);
-//
-//    // Compute coefficients for fundamental forms
-//    float E = Dot(dpdu, dpdu);
-//    float F = Dot(dpdu, dpdv);
-//    float G = Dot(dpdv, dpdv);
-//    Vector N = Normalize(Cross(dpdu, dpdv));
-//    float e = Dot(N, d2Pduu);
-//    float f = Dot(N, d2Pduv);
-//    float g = Dot(N, d2Pdvv);
-//
-//    // Compute $\dndu$ and $\dndv$ from fundamental form coefficients
-//    float invEGF2 = 1.f / (E*G - F*F);
-//    Normal dndu = Normal((f*F - e*G) * invEGF2 * dpdu +
-//                         (e*F - f*E) * invEGF2 * dpdv);
-//    Normal dndv = Normal((g*F - f*G) * invEGF2 * dpdu +
-//                         (f*F - g*E) * invEGF2 * dpdv);
-//
-//    // Initialize _DifferentialGeometry_ from parametric information
-//    const Transform &o2w = *ObjectToWorld;
-//    *dg = DifferentialGeometry(o2w(phit), o2w(dpdu), o2w(dpdv),
-//                               o2w(dndu), o2w(dndv), u, v, this);
-//
-//    // Update _tHit_ for quadric intersection
-//    *tHit = thit;
-//
-//    // Compute _rayEpsilon_ for quadric intersection
-//    *rayEpsilon = 5e-4f * *tHit;
-//    return true;
-//}
-
-
-bool Sphere::intersectP(const Ray &r) const {
+bool Sphere::intersect(const Ray &r, float *t_hit, float *ray_epsilon,
+                       DifferentialGeometry *dg) const {
     float phi;
     Point phit;
     // Transform _Ray_ to object space
-    Ray ray;
-    (*world2object_)(r, &ray);
+    Ray ray = (*world2object_)(r);
 
     // Compute quadratic sphere coefficients
     float A = ray._d.x()*ray._d.x() + ray._d.y()*ray._d.y() + ray._d.z()*ray._d.z();
@@ -138,7 +36,7 @@ bool Sphere::intersectP(const Ray &r) const {
 
     // Solve quadratic equation for _t_ values
     float t0, t1;
-    if (!Quadratic(A, B, C, &t0, &t1))
+    if (!quadratic(A, B, C, &t0, &t1))
         return false;
 
     // Compute intersection distance along ray
@@ -154,7 +52,7 @@ bool Sphere::intersectP(const Ray &r) const {
     phit = ray(thit);
     if (phit.x == 0.f && phit.y == 0.f) phit.x = 1e-5f * radius_;
     phi = atan2f(phit.y, phit.x);
-    if (phi < 0.) phi += 2.f*M_PI;
+    if (phi < 0.) phi += 2.f*LG_PI;
 
     // Test sphere intersection against clipping parameters
     if ((z_min_ > -radius_ && phit.z < z_min_) ||
@@ -166,7 +64,107 @@ bool Sphere::intersectP(const Ray &r) const {
         phit = ray(thit);
         if (phit.x == 0.f && phit.y == 0.f) phit.x = 1e-5f * radius_;
         phi = atan2f(phit.y, phit.x);
-        if (phi < 0.) phi += 2.f*M_PI;
+        if (phi < 0.) phi += 2.f*LG_PI;
+        if ((z_min_ > -radius_ && phit.z < z_min_) ||
+            (z_max_ <  radius_ && phit.z > z_max_) || phi > phi_max_)
+            return false;
+    }
+
+    // Find parametric representation of sphere hit
+    float u = phi / phi_max_;
+    float theta = acosf(clamp(phit.z / radius_, -1.f, 1.f));
+    float v = (theta - theta_min_) / (theta_max_ - theta_min_);
+
+    // Compute sphere $\dpdu$ and $\dpdv$
+    float zradius = sqrtf(phit.x*phit.x + phit.y*phit.y);
+    float invzradius = 1.f / zradius;
+    float cosphi = phit.x * invzradius;
+    float sinphi = phit.y * invzradius;
+    Vector dpdu(-phi_max_ * phit.y, phi_max_ * phit.x, 0);
+    Vector dpdv = (theta_max_-theta_min_) *
+        Vector(phit.z * cosphi, phit.z * sinphi,
+               -radius_ * sinf(theta));
+
+    // Compute sphere $\dndu$ and $\dndv$
+    Vector d2Pduu = -phi_max_ * phi_max_ * Vector(phit.x, phit.y, 0);
+    Vector d2Pduv = (theta_max_ - theta_min_) * phit.z * phi_max_ *
+                    Vector(-sinphi, cosphi, 0.);
+    Vector d2Pdvv = -(theta_max_ - theta_min_) * (theta_max_ - theta_min_) *
+                    Vector(phit.x, phit.y, phit.z);
+
+    // Compute coefficients for fundamental forms
+    float E = Vector::dot(dpdu, dpdu);
+    float F = Vector::dot(dpdu, dpdv);
+    float G = Vector::dot(dpdv, dpdv);
+    Vector N = Vector::normalize(Vector::cross(dpdu, dpdv));
+    float e = Vector::dot(N, d2Pduu);
+    float f = Vector::dot(N, d2Pduv);
+    float g = Vector::dot(N, d2Pdvv);
+
+    // Compute $\dndu$ and $\dndv$ from fundamental form coefficients
+    float invEGF2 = 1.f / (E*G - F*F);
+    Normal dndu = Normal((f*F - e*G) * invEGF2 * dpdu +
+                         (e*F - f*E) * invEGF2 * dpdv);
+    Normal dndv = Normal((g*F - f*G) * invEGF2 * dpdu +
+                         (f*F - g*E) * invEGF2 * dpdv);
+
+    // Initialize _DifferentialGeometry_ from parametric information
+    const Transform &o2w = *object2world_;
+    *dg = DifferentialGeometry(o2w(phit), o2w(dpdu), o2w(dpdv),
+                               o2w(dndu), o2w(dndv), u, v, this);
+
+    // Update _tHit_ for quadric intersection
+    *t_hit = thit;
+
+    // Compute _rayEpsilon_ for quadric intersection
+    *ray_epsilon = 5e-4f * *t_hit;
+    return true;
+}
+
+
+bool Sphere::intersectP(const Ray &r) const {
+    float phi;
+    Point phit;
+    // Transform _Ray_ to object space
+    Ray ray = (*world2object_)(r);
+
+    // Compute quadratic sphere coefficients
+    float A = ray._d.x()*ray._d.x() + ray._d.y()*ray._d.y() + ray._d.z()*ray._d.z();
+    float B = 2 * (ray._d.x()*ray._o.x() + ray._d.y()*ray._o.y() + ray._d.z()*ray._o.z());
+    float C = ray._o.x()*ray._o.x() + ray._o.y()*ray._o.y() +
+              ray._o.z()*ray._o.z() - radius_*radius_;
+
+    // Solve quadratic equation for _t_ values
+    float t0, t1;
+    if (!quadratic(A, B, C, &t0, &t1))
+        return false;
+
+    // Compute intersection distance along ray
+    if (t0 > ray._tmax || t1 < ray._tmin)
+        return false;
+    float thit = t0;
+    if (t0 < ray._tmin) {
+        thit = t1;
+        if (thit > ray._tmax) return false;
+    }
+
+    // Compute sphere hit position and $\phi$
+    phit = ray(thit);
+    if (phit.x == 0.f && phit.y == 0.f) phit.x = 1e-5f * radius_;
+    phi = atan2f(phit.y, phit.x);
+    if (phi < 0.) phi += 2.f*LG_PI;
+
+    // Test sphere intersection against clipping parameters
+    if ((z_min_ > -radius_ && phit.z < z_min_) ||
+        (z_max_ <  radius_ && phit.z > z_max_) || phi > phi_max_) {
+        if (thit == t1) return false;
+        if (t1 > ray._tmax) return false;
+        thit = t1;
+        // Compute sphere hit position and $\phi$
+        phit = ray(thit);
+        if (phit.x == 0.f && phit.y == 0.f) phit.x = 1e-5f * radius_;
+        phi = atan2f(phit.y, phit.x);
+        if (phi < 0.) phi += 2.f*LG_PI;
         if ((z_min_ > -radius_ && phit.z < z_min_) ||
             (z_max_ <  radius_ && phit.z > z_max_) || phi > phi_max_)
             return false;
@@ -215,10 +213,10 @@ float Sphere::area() const {
 //    float sinThetaMax2 = radius_*radius_ / DistanceSquared(p, Pcenter);
 //    float cosThetaMax = sqrtf(max(0.f, 1.f - sinThetaMax2));
 //    DifferentialGeometry dgSphere;
-//    float thit, rayEpsilon;
+//    float thit, ray_epsilon;
 //    Point ps;
 //    Ray r(p, UniformSampleCone(u1, u2, cosThetaMax, wcX, wcY, wc), 1e-3f);
-//    if (!Intersect(r, &thit, &rayEpsilon, &dgSphere))
+//    if (!Intersect(r, &thit, &ray_epsilon, &dgSphere))
 //        thit = Dot(Pcenter - p, Normalize(r.d));
 //    ps = r(thit);
 //    *ns = Normal(Normalize(ps - Pcenter));

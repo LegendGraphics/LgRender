@@ -45,7 +45,7 @@ public:
     }
     virtual float Pdf(const Point &p, const Vector &wi) const;*/
 
-private:
+protected:
     const Transform *object2world_, *world2object_;
     //const bool ReverseOrientation, TransformSwapsHandedness;
     const unsigned int shape_id_;

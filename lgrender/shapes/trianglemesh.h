@@ -3,9 +3,10 @@
 #ifndef LGRENDER_SHAPES_TRIANGLEMESH_H
 #define LGRENDER_SHAPES_TRIANGLEMESH_H
 
-#include "shape.h"
+#include "lgrender/core/shape.h"
 #include <map>
 using std::map;
+using std::vector;
 
 // TriangleMesh Declarations
 class TriangleMesh : public Shape 

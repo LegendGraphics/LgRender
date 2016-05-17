@@ -5,9 +5,19 @@
 
 #include <cmath>
 
-#include<lgrender/core/geometry.h>
-
 // Global Inline Functions
+template <typename T>
+inline T min(T t1, T t2)
+{
+    return t1 < t2 ? t1 : t2;
+}
+
+template <typename T>
+inline T max(T t1, T t2)
+{
+    return t1 > t2 ? t1 : t2;
+}
+
 inline float lerp(float t, float v1, float v2) 
 {
     return (1.f - t) * v1 + t * v2;
@@ -93,23 +103,22 @@ inline int ceil2int(float val)
     return (int)ceilf(val);
 }
 
-inline float dot(const Triple& t1, const Triple& t2)
-{
-    return (t1.x() * t2.x() + t1.y() * t2.y() + t1.z() * t2.z());
+inline bool quadratic(float A, float B, float C, float *t0, float *t1) {
+    // Find quadratic discriminant
+    float discrim = B * B - 4.f * A * C;
+    if (discrim < 0.) return false;
+    float rootDiscrim = sqrtf(discrim);
+
+    // Compute quadratic _t_ values
+    float q;
+    if (B < 0) q = -.5f * (B - rootDiscrim);
+    else       q = -.5f * (B + rootDiscrim);
+    *t0 = q / A;
+    *t1 = C / q;
+    if (*t0 > *t1) std::swap(*t0, *t1);
+    return true;
 }
 
-inline Triple cross(const Triple& t1, const Triple& t2)
-{
-    return Triple((t1.y() * t2.z()) - (t1.z() * t2.y()),
-        (t1.z() * t2.x()) - (t1.x() * t2.z()),
-        (t1.x() * t2.y()) - (t1.y() * t2.x()));
-}
-
-inline Triple normalize(const Triple& t)
-{
-    float len = t.length();
-    return Triple(t.x() / len, t.y() / len, t.z() / len);
-}
 
 
 #endif //LGRENDER_MATH_UTILS_H

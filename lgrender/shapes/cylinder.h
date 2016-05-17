@@ -3,7 +3,7 @@
 #ifndef LGRENDER_SHAPES_CYLINDER_H
 #define LGRENDER_SHAPES_CYLINDER_H
 
-#include "shape.h"
+#include "lgrender/core/shape.h"
 
 class Cylinder : public Shape
 {
