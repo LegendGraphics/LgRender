@@ -2,7 +2,7 @@
 #ifndef LGRENDER_CORE_DIFF_GEOMETRY_H
 #define LGRENDER_CORE_DIFF_GEOMETRY_H
 
-#include "geometry.h"
+#include "lgrender/core/geometry.h"
 
 
 struct DifferentialGeometry 
